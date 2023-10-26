@@ -1,0 +1,155 @@
+﻿@page "/openaddress"
+
+<PageTitle>Open Address Hash-Map</PageTitle>
+
+<h1>Open Addressing Hash Table</h1>
+
+<h4>Client Search</h4>
+    <InputText @bind-Value="_searchId" placeholder="Passport ID" style="width: 300px; margin-bottom: 20px; font-size: 1em"></InputText>
+<button class="btn btn-info" @onclick="OnSearchClicked">Search</button>
+
+@if (_hashMap is not null)
+{
+    <p><em>Collisions: @_hashMap.CollisionCount</em></p>
+    <p><em>Write attempts: @string.Format("{0:F2}",(double)_hashMap.CollisionCount/30)</em></p>
+}
+@if (_hashMap == null || _display)
+{
+    if (_foundClient is not null)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Full Name</th>
+                    <th>Date of Birth</th>
+                    <th>Phone</th>
+                    <th>Passport ID</th>
+                    <th>Address</th>
+                    <th>Bill Number</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><p style="color: red">Occupied</p></td>
+                    <td>@_foundClient.FullName</td>
+                    <td>@_foundClient.DateOfBirth</td>
+                    <td>@_foundClient.Phone</td>
+                    <td>@_foundClient.Passport</td>
+                    <td>@_foundClient.Address</td>
+                    <td>@_foundClient.BillNumber</td>
+                    <td>@_foundClient.Amount</td>
+                    <td>
+                        <a class="btn btn-danger" @onclick="() => OnEmployeeDeletedClicked(_foundClient.Passport)">
+                            <i class="oi oi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p><em>Nothing found...</em></p>
+    }
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Hash</th>
+                <th>Status</th>
+                <th>Full Name</th>
+                <th>Date of Birth</th>
+                <th>Phone</th>
+                <th>Passport ID</th>
+                <th>Address</th>
+                <th>Bill Number</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var client in _hashMap!.HashRows)
+            {
+                <tr>
+                    @if (client?.Status == RowStatus.Free)
+                    {
+                        <td>@(_keys++)</td>
+                        <td><p style="color: green">Free</p></td>
+                    }
+                    @if (client?.Status == RowStatus.Deleted)
+                    {
+                        <td>@(_keys++)</td>
+                        <td><p style="color: blue">Removed</p></td>
+                    }
+                    @if (client?.Status == RowStatus.Occupied)
+                    {
+                        <td>@(_keys++)</td>
+                        <td><p style="color: red">Occupied</p></td>
+                        <td>@client.Value?.FullName</td>
+                        <td>@client.Value?.DateOfBirth</td>
+                        <td>@client.Value?.Phone</td>
+                        <td>@client.Value?.Passport</td>
+                        <td>@client.Value?.Address</td>
+                        <td>@client.Value?.BillNumber</td>
+                        <td>@client.Value?.Amount</td>
+                        <td>
+                            <a class="btn btn-danger" @onclick="() => OnEmployeeDeletedClicked(client.Key!)">
+                                <i class="oi oi-trash"></i>
+                            </a>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private readonly IOpenAddressHashMap<string, Client>? _hashMap = new OpenAddressHashMap<string, Client>();
+    private string _searchId = string.Empty;
+    private Client? _foundClient;
+    private bool _display = false;
+    private int _keys = 0;
+
+    protected override void OnInitialized()
+    {
+        string filePath = @"D:\";
+        ExportImportService<Client> service = new(filePath, "clients.csv");
+        service.ExportPersons(DataGenerator.GenerateClients(30));
+
+        IEnumerable<Client> clients = service.Import();
+        foreach (Client client in clients)
+        {
+            _hashMap!.Add(client.Passport, client);
+        }
+    }
+
+    private void OnSearchClicked()
+    {
+        if (!_hashMap!.TryGetValue(_searchId.Trim(), out Client? _found))
+        {
+            _foundClient = null;
+            _display = true;
+        }
+        if (string.IsNullOrEmpty(_searchId))
+        {
+            _display = false;
+            _keys = 0;
+        }
+        else
+        {
+            _display = true;
+            _foundClient = _found;
+        }
+    }
+
+    private void OnEmployeeDeletedClicked(string key)
+    { 
+        _hashMap!.Remove(key);
+        _foundClient = null;
+        _keys = 0;
+    }
+}

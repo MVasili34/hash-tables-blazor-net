@@ -1,0 +1,60 @@
+﻿@page "/diagrams"
+
+<h3>Hash Function Quality Diagram</h3>
+
+ @if (revenue is not null)
+ {
+<table class="table">
+    <thead>
+        <tr>
+                @for (int i = -1; i < revenue.Length; i++)
+                {
+                    <th></th>
+                }
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+                <td>Hash</td>
+            @for(int i = 0; i<revenue.Length; i++)
+            {
+                
+                <td>@revenue[i].HashValue</td>
+            }
+                
+       </tr>
+       <tr>
+                <td>Amount</td>
+                @for (int i = 0; i < revenue.Length; i++)
+                {
+                    
+                    <td>@revenue[i].TotalAmounts</td>
+                }
+       </tr>
+    </tbody>
+</table>
+    }
+
+<RadzenChart>
+    <RadzenLineSeries Smooth="true" Data="@revenue" CategoryProperty="HashValue" ValueProperty="TotalAmounts" />
+    <RadzenValueAxis>
+        <RadzenAxisTitle Text="Collisions" />
+    </RadzenValueAxis>
+    <RadzenCategoryAxis>
+        <RadzenAxisTitle Text="Hash" />
+    </RadzenCategoryAxis>
+</RadzenChart>
+@code {
+    private IEnumerable<Client> RandomClients = DataGenerator.GenerateClients(60);
+    private readonly ChainHashMap<string, Client> _hashMap = new();
+    private DataItem[]? revenue;
+    private DataItem[]? openAddress;
+    private bool Second = true;
+
+    protected override void OnInitialized()
+    {
+        foreach (Client element in RandomClients)
+            _hashMap.Add(element.Passport, element);
+        revenue = _hashMap.DiagramData();
+    }
+}
