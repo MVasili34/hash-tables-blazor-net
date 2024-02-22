@@ -25,20 +25,16 @@ public class ExportImportService<T> where T: Client
         {
             directory.Create();
         }
-        using (FileStream fileStream = new(Path.Combine(PathToFile, FileName), FileMode.Create))
-        {
-            using (StreamWriter streamWriter = new(fileStream))
-            {
-                using (CsvWriter writer = new(streamWriter, CultureInfo.InvariantCulture))
-                {
-                    writer.WriteHeader<T>();
-                    writer.NextRecord();
-                    writer.WriteRecords(clients);
-                    writer.NextRecord();
-                    writer.Flush();
-                }
-            }
-        }
+
+        using FileStream fileStream = new(Path.Combine(PathToFile, FileName), FileMode.Create);
+        using StreamWriter streamWriter = new(fileStream);
+        using CsvWriter writer = new(streamWriter, CultureInfo.InvariantCulture);
+
+        writer.WriteHeader<T>();
+        writer.NextRecord();
+        writer.WriteRecords(clients);
+        writer.NextRecord();
+        writer.Flush();
     }
 
     /// <summary>
@@ -47,17 +43,10 @@ public class ExportImportService<T> where T: Client
     /// <returns><see cref="IEnumerable{T}"/> collection from CSV file</returns>
     public IEnumerable<T> Import()
     {
-        using (FileStream fileStream = new(Path.Combine(PathToFile, FileName),
-            FileMode.Open))
-        {
-            using (StreamReader streamReader = new(fileStream))
-            {
-                using (var reader = new CsvReader(streamReader,
-                CultureInfo.InvariantCulture))
-                {
-                    return reader.GetRecords<T>().ToList();
-                }
-            }
-        }
+        using FileStream fileStream = new(Path.Combine(PathToFile, FileName), FileMode.Open);
+        using StreamReader streamReader = new(fileStream);
+        using var reader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
+
+        return reader.GetRecords<T>().ToList();
     }
 }
