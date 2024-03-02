@@ -45,16 +45,16 @@
     </RadzenCategoryAxis>
 </RadzenChart>
 @code {
-    private IEnumerable<Client> RandomClients = DataGenerator.GenerateClients(60);
-    private readonly ChainHashMap<string, Client> _hashMap = new();
+    private IEnumerable<Record> RandomClients = DataGenerator.GenerateClients(60);
+    private readonly ChainHashMap<string, Record> _hashMap = new();
     private DataItem[]? revenue;
     private DataItem[]? openAddress;
     private bool Second = true;
 
     protected override void OnInitialized()
     {
-        foreach (Client element in RandomClients)
-            _hashMap.Add(element.Passport, element);
+        foreach (Record element in RandomClients)
+            _hashMap.Add(element.FullName, element);
         revenue = _hashMap.DiagramData();
     }
 }

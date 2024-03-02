@@ -1,6 +1,6 @@
 ﻿namespace Services;
 
-public class ListNode<TKey, TValue> where TValue : Client
+public class ListNode<TKey, TValue> where TValue : Record
 {
     private TKey _key;
     private TValue _value;

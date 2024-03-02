@@ -3,15 +3,18 @@ using Services.Models;
 
 namespace Services;
 
-public class ChainHashMap<TKey, TValue> : IChainHashMap<TKey, TValue> where TValue : Client
+public class ChainHashMap<TKey, TValue> : IChainHashMap<TKey, TValue> where TValue : Record
 {
     private readonly ListNode<TKey, TValue>?[] _hashTable;
     private int _currentAmount = 0;
     private const int _size = 60;
     private readonly double _constValue = (Math.Sqrt(5) - 1) / 2;
-    public int CollisionCount { get; private set; }
 
     public ChainHashMap() => _hashTable = new ListNode<TKey, TValue>[_size];
+
+    public int CollisionCount { get; private set; }
+
+    public int LastSearchComparions { get; private set; }
 
     public bool Add(TKey key, TValue value)
     {
@@ -46,12 +49,20 @@ public class ChainHashMap<TKey, TValue> : IChainHashMap<TKey, TValue> where TVal
     public bool TryGetValue(TKey key, out TValue? value)
     {
         int hash = HashFunction(key);
+        LastSearchComparions = 0;
+        if (hash == -1)
+        {
+            value = default;
+            return false;
+        }
+
         if (_hashTable[hash] is not null)
         {
             ListNode<TKey, TValue>? current = _hashTable[hash];
             while (current is not null)
             {
-                if(current.Key!.Equals(key))
+                LastSearchComparions++;
+                if (current.Key!.Equals(key))
                 {
                     value = current.Value;
                     return true;
@@ -117,10 +128,14 @@ public class ChainHashMap<TKey, TValue> : IChainHashMap<TKey, TValue> where TVal
     /// <returns>Hash result</returns>
     private int HashFunction(TKey value)
     {
-        int hash = 0;
         string symbols = value!.ToString()!;
-        for (int i = 0; i < symbols.Length; i++)
-            hash += symbols[i];
+
+        if (symbols.Length < 2)
+        {
+            return -1;
+        }
+
+        int hash = symbols[0] + symbols[1];
 
         double result = (hash * _constValue) % 1;
         result *= _size;

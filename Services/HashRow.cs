@@ -2,7 +2,7 @@
 
 namespace Services;
 
-public class HashRow<TKey, TValue> where TValue : Client
+public class HashRow<TKey, TValue> where TValue : Record
 {
     public TKey? Key { get; set; }
     public TValue? Value { get; set; }

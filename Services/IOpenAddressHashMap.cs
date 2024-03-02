@@ -1,6 +1,6 @@
 ﻿namespace Services;
 
-public interface IOpenAddressHashMap<TKey, TValue> where TValue : Client
+public interface IOpenAddressHashMap<TKey, TValue> where TValue : Record
 {
     HashRow<TKey, TValue>?[] HashRows { get; }
 
@@ -8,6 +8,11 @@ public interface IOpenAddressHashMap<TKey, TValue> where TValue : Client
     /// Collision counter
     /// </summary>
     int CollisionCount { get; }
+
+    /// <summary>
+    /// Last search comparisons counter
+    /// </summary>
+    int LastSearchComparions { get; }
 
     /// <summary>
     /// Method for adding values to OA Hash Table of type <see langword="TKey - TValue"/>

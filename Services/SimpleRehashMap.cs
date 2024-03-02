@@ -2,14 +2,13 @@
 
 namespace Services;
 
-public class OpenAddressHashMap<TKey, TValue> : IOpenAddressHashMap<TKey, TValue> where TValue : Record
+public class SimpleRehashMap<TKey, TValue> : IOpenAddressHashMap<TKey, TValue> where TValue : Record
 {
-    public HashRow<TKey, TValue>?[] HashRows { get; }
     private const int _size = 60;
     private readonly double _constValue = (Math.Sqrt(5) - 1) / 2;
-    private int _currentCount = 0;
+    public HashRow<TKey, TValue>?[] HashRows { get; }
 
-    public OpenAddressHashMap()
+    public SimpleRehashMap()
     {
         HashRows = new HashRow<TKey, TValue>[_size];
         for (int i = 0; i < HashRows.Length; i++)
@@ -24,24 +23,20 @@ public class OpenAddressHashMap<TKey, TValue> : IOpenAddressHashMap<TKey, TValue
 
     public bool Add(TKey key, TValue item)
     {
-        if (_currentCount >= _size)
-        {
-            return false;
-        }
         int hash = HashFunction(key);
-        if (HashRows[hash]?.Status == RowStatus.Occupied)
-            CollisionCount++;
+
         while (HashRows[hash]?.Status == RowStatus.Occupied)
         {
-            hash = (hash + 1) % _size;
+            CollisionCount++;
+            hash = Rehash(hash);
         }
 
-        HashRows[hash] = new() { 
-            Key = key, 
-            Value = item, 
+        HashRows[hash] = new()
+        {
+            Key = key,
+            Value = item,
             Status = RowStatus.Occupied
         };
-        _currentCount++;
         return true;
     }
 
@@ -65,7 +60,7 @@ public class OpenAddressHashMap<TKey, TValue> : IOpenAddressHashMap<TKey, TValue
                 value = HashRows[hash]!.Value;
                 return true;
             }
-            hash = (hash + 1) % _size;
+            hash = SimpleRehashMap<TKey, TValue>.Rehash(hash);
         } while (hash != started);
 
         value = default;
@@ -78,24 +73,18 @@ public class OpenAddressHashMap<TKey, TValue> : IOpenAddressHashMap<TKey, TValue
         int started = hash;
         do
         {
-            if (HashRows[hash]!.Status == RowStatus.Occupied && 
+            if (HashRows[hash]!.Status == RowStatus.Occupied &&
                 HashRows[hash]!.Key!.Equals(key))
             {
                 HashRows[hash]!.Status = RowStatus.Deleted;
-                _currentCount--;
                 return true;
             }
-            hash = (hash + 1) % _size;
+            hash = SimpleRehashMap<TKey, TValue>.Rehash(hash);
         } while (hash != started);
 
         return false;
     }
 
-    /// <summary>
-    /// Multiplication Hash function
-    /// </summary>
-    /// <param name="value">Value</param>
-    /// <returns>Hash result</returns>
     private int HashFunction(TKey key)
     {
         string symbols = key!.ToString()!;
@@ -113,4 +102,6 @@ public class OpenAddressHashMap<TKey, TValue> : IOpenAddressHashMap<TKey, TValue
 
         return hash;
     }
+
+    private static int Rehash(int oldHash) => (oldHash + 1) % _size;
 }

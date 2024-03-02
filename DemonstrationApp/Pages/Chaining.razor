@@ -4,13 +4,14 @@
 
 <h1>Chaining Hash Table</h1>
 
-<h4>Search Client</h4>
-   <InputText @bind-Value="_searchId" placeholder="Passport ID" style="width: 300px; margin-bottom: 20px; font-size: 1em"></InputText>
+<h4>Record Search</h4>
+    <InputText @bind-Value="_searchId" placeholder="Identifier" style="width: 300px; margin-bottom: 20px; font-size: 1em"></InputText>
 <button class="btn btn-info" @onclick="OnSearchClicked">Search</button>
 @if (_hashMap is not null)
 {
     <p><em>Collisions: @_hashMap.CollisionCount</em></p>
-    <p><em>Write attempts: @string.Format("{0:F2}",(double)_hashMap.CollisionCount/30)</em></p>
+    <p><em>Write attempts (%): @string.Format("{0:F2}",(double)_hashMap.CollisionCount * 100/30)</em></p>
+    <p><em>Last search comparions: @_hashMap.LastSearchComparions </em></p>
 }
 @if (_viewCollection == null)
 {
@@ -19,26 +20,14 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Full Name</th>
-                    <th>Date of Birth</th>
-                    <th>Phone</th>
-                    <th>Passport ID</th>
-                    <th>Address</th>
-                    <th>Bill Number</th>
-                    <th>Amount</th>
+                    <th>Identifier</th>
                 </tr>
             </thead>
             <tbody>
             <tr>
                     <td>@_foundClient.FullName</td>
-                    <td>@_foundClient.DateOfBirth</td>
-                    <td>@_foundClient.Phone</td>
-                    <td>@_foundClient.Passport</td>
-                    <td>@_foundClient.Address</td>
-                    <td>@_foundClient.BillNumber</td>
-                    <td>@_foundClient.Amount</td>
                     <td>
-                        <a class="btn btn-danger" @onclick="() => OnEmployeeDeleteClicked(_foundClient.Passport)">
+                        <a class="btn btn-danger" @onclick="() => OnEmployeeDeleteClicked(_foundClient.FullName)">
                             <i class="oi oi-trash"></i>
                         </a>
                     </td>
@@ -57,10 +46,7 @@ else
         <thead>
             <tr>
                 <th>Hash</th>
-                <th>Full Name</th>
-                <th>Date of Birth</th>
-                <th>Phone</th>
-                <th>Passport ID</th>
+                <th>Identifier</th>
      
             </tr>
         </thead>
@@ -69,13 +55,10 @@ else
             {
                 <tr>
                     <td>@key</td>
-                    @foreach (Client client in _viewCollection[key])
+                    @foreach (Record client in _viewCollection[key])
                     {
                         <td>@client.FullName</td>
-                        <td>@client.DateOfBirth</td>
-                        <td>@client.Phone</td>
-                        <td>@client.Passport</td>
-                        <td><a class="btn btn-danger" @onclick="() => OnEmployeeDeleteClicked(client.Passport)">
+                        <td><a class="btn btn-danger" @onclick="() => OnEmployeeDeleteClicked(client.FullName)">
                             <i class="oi oi-trash"></i>
                             </a>
                         </td>
@@ -87,28 +70,28 @@ else
 }
 
 @code {
-    private readonly IChainHashMap<string, Client>? _hashMap = new ChainHashMap<string, Client>();
-    private Dictionary<int, IEnumerable<Client>>? _viewCollection;
+    private readonly IChainHashMap<string, Record>? _hashMap = new ChainHashMap<string, Record>();
+    private Dictionary<int, IEnumerable<Record>>? _viewCollection;
     private string _searchId = string.Empty;
-    private Client? _foundClient;
+    private Record? _foundClient;
 
     protected override void OnInitialized()
     {
         string filePath = Environment.CurrentDirectory;
-        ExportImportService<Client> service = new(filePath, "clients.csv");
+        ExportImportService<Record> service = new(filePath, "clients.csv");
         service.ExportPersons(DataGenerator.GenerateClients(30));
 
-        IEnumerable<Client> clients = service.Import();
-        foreach(Client client in clients)
+        IEnumerable<Record> clients = service.Import();
+        foreach(Record client in clients)
         {
-            _hashMap!.Add(client.Passport, client);
+            _hashMap!.Add(client.FullName, client);
         }
         _viewCollection = _hashMap!.OutputValues();
     }
 
     private void OnSearchClicked()
     {
-        if(!_hashMap!.TryGetValue(_searchId.Trim(), out Client? _found))
+        if(!_hashMap!.TryGetValue(_searchId.Trim(), out Record? _found))
         {
             _viewCollection = null;
             _foundClient = null;

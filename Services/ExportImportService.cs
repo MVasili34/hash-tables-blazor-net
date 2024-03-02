@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace Services;
 
-public class ExportImportService<T> where T: Client
+public class ExportImportService<T> where T: Record
 {
     public string PathToFile { get; init; } = null!;
     public string FileName { get; init; } = null!;

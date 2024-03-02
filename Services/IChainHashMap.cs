@@ -1,11 +1,16 @@
 ﻿namespace Services;
 
-public interface IChainHashMap<TKey, TValue> where TValue : Client 
+public interface IChainHashMap<TKey, TValue> where TValue : Record 
 {
     /// <summary>
     /// Collision counter
     /// </summary>
     int CollisionCount { get; }
+
+    /// <summary>
+    /// Last search comparisons counter
+    /// </summary>
+    int LastSearchComparions { get; }
 
     /// <summary>
     /// Method for adding values to Chained Hash Table of type <see langword="TKey - TValue"/>

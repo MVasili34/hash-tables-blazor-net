@@ -1,11 +1,11 @@
-﻿@page "/openaddress"
+﻿@page "/rehashing"
 
-<PageTitle>Open Address Hash-Map</PageTitle>
+<PageTitle>Simple Rehashing Hash-Map</PageTitle>
 
-<h1>Open Addressing Hash Table</h1>
+<h3>Simple Rehashing Hash Map</h3>
 
 <h4>Record Search</h4>
-    <InputText @bind-Value="_searchId" placeholder="Identifier" style="width: 300px; margin-bottom: 20px; font-size: 1em"></InputText>
+<InputText @bind-Value="_searchId" placeholder="Identifier" style="width: 300px; margin-bottom: 20px; font-size: 1em"></InputText>
 <button class="btn btn-info" @onclick="OnSearchClicked">Search</button>
 
 @if (_hashMap is not null)
@@ -85,7 +85,7 @@ else
 }
 
 @code {
-    private readonly IOpenAddressHashMap<string, Record>? _hashMap = new OpenAddressHashMap<string, Record>();
+    private readonly IOpenAddressHashMap<string, Record>? _hashMap = new SimpleRehashMap<string, Record>();
     private string _searchId = string.Empty;
     private Record? _foundClient;
     private bool _display = false;
@@ -124,7 +124,7 @@ else
     }
 
     private void OnEmployeeDeletedClicked(string key)
-    { 
+    {
         _hashMap!.Remove(key);
         _foundClient = null;
         _keys = 0;
