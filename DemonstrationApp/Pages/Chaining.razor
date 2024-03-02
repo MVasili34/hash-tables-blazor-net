@@ -94,7 +94,7 @@ else
 
     protected override void OnInitialized()
     {
-        string filePath = @"D:\";
+        string filePath = Environment.CurrentDirectory;
         ExportImportService<Client> service = new(filePath, "clients.csv");
         service.ExportPersons(DataGenerator.GenerateClients(30));
 
